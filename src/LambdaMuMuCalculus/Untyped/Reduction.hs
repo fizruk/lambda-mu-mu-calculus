@@ -1,8 +1,11 @@
-{-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE LambdaCase        #-}
+{-# LANGUAGE OverloadedStrings #-}
 module LambdaMuMuCalculus.Untyped.Reduction where
 
 import           Control.Applicative
 import           Data.List.NonEmpty                as NonEmpty
+import qualified Data.Text.IO                      as Text
+import           LambdaMuMuCalculus.Untyped.Pretty
 import           LambdaMuMuCalculus.Untyped.Syntax
 
 cbv :: (Eq var, Eq covar, Enum var, Enum covar) => Command covar var -> Maybe (Command covar var)
@@ -25,6 +28,19 @@ whnf
   -> Command covar var -> Command covar var
 whnf step = NonEmpty.last . iterateMaybe step
 
+nfReductions
+  :: (Eq var, Eq covar, Enum var, Enum covar)
+  => (Command covar var -> Maybe (Command covar var))
+  -> Term covar var -> NonEmpty (Term covar var)
+nfReductions step = iterateMaybe (normalizeStep step)
+
+ppReductions :: (Command' -> Maybe Command') -> Term' -> IO ()
+ppReductions step t =
+  case nfReductions step t of
+    t' :| ts -> do
+      Text.putStrLn ("  " <> ppTerm t')
+      mapM_ (Text.putStrLn . ("↦ " <>) . ppTerm) ts
+
 nf :: (Eq var, Eq covar, Enum var, Enum covar)
    => (Command covar var -> Maybe (Command covar var))
    -> Term covar var -> Term covar var
@@ -36,7 +52,7 @@ normalizeStep
   -> Term covar var -> Maybe (Term covar var)
 normalizeStep _    (Variable _) = Nothing
 normalizeStep step (Lambda x t) = Lambda x <$> normalizeStep step t
-normalizeStep step (Mu a (Command t (Covariable a'))) | a == a' = Just t
+normalizeStep _ (Mu a (Command t (Covariable a'))) | a == a' = Just t
 normalizeStep step (Mu a c)     = Mu a <$> normalizeStepInCommand step c
 
 normalizeStepInCommand
@@ -56,7 +72,7 @@ normalizeStepInContext _ (Covariable _) = Nothing
 normalizeStepInContext step (App t e)
     = App <$> normalizeStep step t <*> pure e
   <|> App t <$> normalizeStepInContext step e
-normalizeStepInContext step (MuVar x (Command (Variable x') e)) | x == x' = Just e
+normalizeStepInContext _ (MuVar x (Command (Variable x') e)) | x == x' = Just e
 normalizeStepInContext step (MuVar x c)
   = MuVar x <$> normalizeStepInCommand step c
 
