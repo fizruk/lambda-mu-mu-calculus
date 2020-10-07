@@ -8,14 +8,16 @@ import qualified Data.Text.IO                      as Text
 import           LambdaMuMuCalculus.Untyped.Pretty
 import           LambdaMuMuCalculus.Untyped.Syntax
 
-cbv :: (Eq var, Eq covar, Enum var, Enum covar) => Command covar var -> Maybe (Command covar var)
+cbv :: (Eq var, Eq covar, Enum var, Enum covar)
+    => Command covar var -> Maybe (Command covar var)
 cbv = \case
-  Command (Lambda x t1) (App t2 e)  -> Just (Command (substitute [(x, t2)] [] t1) e)
+  Command (Lambda x t1) (App t2 e)  -> Just (Command t2 (MuVar x (Command t1 e)))
   Command (Mu b c) e                -> Just (substituteInCommand [] [(b, e)] c)
   Command t (MuVar x c)             -> Just (substituteInCommand [(x, t)] [] c)
   _                                 -> Nothing
 
-cbn :: (Eq var, Eq covar, Enum var, Enum covar) => Command covar var -> Maybe (Command covar var)
+cbn :: (Eq var, Eq covar, Enum var, Enum covar)
+    => Command covar var -> Maybe (Command covar var)
 cbn = \case
   Command (Lambda x t1) (App t2 e)  -> Just (Command (substitute [(x, t2)] [] t1) e)
   Command t (MuVar x c)             -> Just (substituteInCommand [(x, t)] [] c)
