@@ -79,36 +79,6 @@ refreshVar vars x
   | x `elem` vars = refreshVar vars (succ x)
   | otherwise     = x
 
-refresh
-  :: (Eq var, Enum var, Eq covar, Enum covar)
-  => [var] -> [covar] -> Term covar var -> Term covar var
-refresh _vars _covars (Variable x) = Variable x
-refresh vars covars (Lambda x t) = Lambda x (refresh ((vars \\ [x]) ++ [x']) covars t')
-  where
-    x' = refreshVar vars x
-    t' = substituteWithCapture [(x, Variable x')] [] t
-refresh vars covars (Mu a c) = Mu a' (refreshCommand vars ((covars \\ [a]) ++ [a']) c')
-  where
-    a' = refreshVar covars a
-    c' = substituteWithCaptureInCommand [] [(a, Covariable a')] c
-
-refreshCommand
-  :: (Eq var, Enum var, Eq covar, Enum covar)
-  => [var] -> [covar] -> Command covar var -> Command covar var
-refreshCommand vars covars (Command t e)
-  = Command (refresh vars covars t) (refreshContext vars covars e)
-
-refreshContext
-  :: (Eq var, Enum var, Eq covar, Enum covar)
-  => [var] -> [covar] -> Context covar var -> Context covar var
-refreshContext vars covars = \case
-  Covariable a -> Covariable a
-  App t e      -> App (refresh vars covars t) (refreshContext vars covars e)
-  MuVar x c    ->
-    let x' = refreshVar vars x
-        c' = substituteWithCaptureInCommand [(x, Variable x')] [] c
-     in MuVar x' (refreshCommand ((vars \\ [x]) ++ [x']) covars c')
-
 getFreeVars :: (Eq var, Eq covar) => Term covar var -> ([var], [covar])
 getFreeVars (Variable x) = ([x], [])
 getFreeVars (Lambda x t) = (vars \\ [x], covars)
