@@ -49,7 +49,7 @@ intercalate sep = mconcat . List.intersperse sep
 
 ppTypedTerm :: TypedTerm' -> ColoredText
 ppTypedTerm (TypedTerm vars (t, tt) covars)
-  = ppVars vars <> " ⊢ " <> ppTerm t <> " : " <> ppType tt <> " | " <> ppVars covars
+  = ppVars vars <> " ⊢ " <> ppTerm t <> " : " <> ppType tt <> " | " <> ppCovars covars
 
 ppVars :: [(Var, AType TypeVar)] -> ColoredText
 ppVars = intercalate ", " . map ppTypedVar
@@ -72,7 +72,7 @@ ppTypedCovar (x, t) = ppCovar x <> " : " <> ppType t
 ppTerm :: Term' -> ColoredText
 ppTerm (Variable x) = ppVar x
 ppTerm (Lambda (x, xty) t) = "λ(" <> ppVar x <> " : " <> ppType xty <> ")." <> ppTerm t
-ppTerm (Mu (alpha, aty) c) = "µ(" <> ppCovar alpha <> ":" <> ppType aty <> ")." <> ppCommand c
+ppTerm (Mu (alpha, aty) c) = "µ(" <> ppCovar alpha <> " : " <> ppType aty <> ")." <> ppCommand c
 
 ppCommand :: Command' -> ColoredText
 ppCommand (Command t e) = "⟨" <> ppTerm t <> "|" <> ppContext e <> "⟩"

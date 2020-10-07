@@ -24,11 +24,11 @@ ppVars :: [(Var, AType TypeVar)] -> Text
 ppVars = Text.intercalate ", " . map ppTypedVar
 
 ppTypedVar :: (Var, AType TypeVar) -> Text
-ppTypedVar (x, t) = getVar x <> " : " <> ppType t
+ppTypedVar (x, t) = getVar x <> ":" <> ppType t
 
 ppTerm :: Term' -> Text
 ppTerm (Variable x) = getVar x
-ppTerm (Lambda (x, xty) t) = "λ(" <> getVar x <> " : " <> ppType xty <> ")." <> ppTerm t
+ppTerm (Lambda (x, xty) t) = "λ(" <> getVar x <> ":" <> ppType xty <> ")." <> ppTerm t
 ppTerm (Mu (alpha, aty) c) = "µ(" <> getVar alpha <> ":" <> ppType aty <> ")." <> ppCommand c
 
 ppCommand :: Command' -> Text
@@ -37,7 +37,7 @@ ppCommand (Command t e) = "⟨" <> ppTerm t <> "|" <> ppContext e <> "⟩"
 ppContext :: Context' -> Text
 ppContext (Covariable alpha) = getVar alpha
 ppContext (App t e)          = ppTerm t <> "·" <> ppContext e
-ppContext (MuVar (x, xty) c) = "μ̃(" <> getVar x <> " : " <> ppType xty <> ")." <> ppCommand c
+ppContext (MuVar (x, xty) c) = "μ̃(" <> getVar x <> ":" <> ppType xty <> ")." <> ppCommand c
 
 instance Show ty => Show (AType ty)     where show = Text.unpack . ppType
 
