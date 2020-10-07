@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: d30002a671ed618806395102bd755e6e718b8aaffba9471eb653fbb11a97e3ef
+-- hash: a8e2745774834563ef80e5fa514e56de8d015eefe63b5299d4f54bc7a969c2f5
 
 name:           lambda-mu-mu-calculus
 version:        0.1.0.0
@@ -27,7 +27,9 @@ source-repository head
 
 library
   exposed-modules:
-      LambdaMuMuCalculus.AST.Typed
+      LambdaMuMuCalculus.Typed
+      LambdaMuMuCalculus.Typed.Pretty
+      LambdaMuMuCalculus.Typed.Syntax
       LambdaMuMuCalculus.Untyped
       LambdaMuMuCalculus.Untyped.Church
       LambdaMuMuCalculus.Untyped.Parser
@@ -42,6 +44,7 @@ library
   build-depends:
       attoparsec
     , base >=4.7 && <5
+    , mtl
     , text
   default-language: Haskell2010
 
@@ -56,6 +59,7 @@ executable lambda-mu-mu-calculus
       attoparsec
     , base >=4.7 && <5
     , lambda-mu-mu-calculus
+    , mtl
     , text
   default-language: Haskell2010
 
@@ -71,5 +75,6 @@ test-suite spec
       attoparsec
     , base >=4.7 && <5
     , lambda-mu-mu-calculus
+    , mtl
     , text
   default-language: Haskell2010

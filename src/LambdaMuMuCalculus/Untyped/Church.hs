@@ -15,6 +15,10 @@ import           Numeric.Natural
 instance Num Term' where
   (+) = app2 add
   (*) = app2 mul
+  abs = id
+  signum = app "λn.λs.λz.µα.⟨n|λz.λs.λz.µα.⟨z|μ̃x.⟨s|x·α⟩⟩·z·α⟩"
+  negate = error "negate is not implemented for Term' Church numerals"
+  (-)    = error "(-) is not implemented for Term' Church numerals"
   fromInteger = nat . fromInteger
 
 -- * Function application
@@ -117,3 +121,4 @@ list zs = substituteWithCapture [("t", list' zs)] [] "λf.λz.t"
 instance IsList Term' where
   type Item Term' = Term'
   fromList = list
+  toList = pure   -- maybe this does not make much sense

@@ -22,7 +22,11 @@ newtype Var = Var { getVar :: Text }
   deriving (Eq, IsString)
 
 instance Show Var where show = Text.unpack . getVar
-instance Enum Var where succ = incVarIndex
+
+instance Enum Var where
+  succ = incVarIndex
+  toEnum = error "toEnum is not implemented for Var"
+  fromEnum = error "toEnum is not implemented for Var"
 
 incVarIndex :: Var -> Var
 incVarIndex = coerce incIndexText
