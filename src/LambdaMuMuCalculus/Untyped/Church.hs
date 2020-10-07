@@ -31,7 +31,7 @@ apps :: NonEmpty Term' -> Term'
 apps = foldl1 app
 
 app :: Term' -> Term' -> Term'
-app f x = "µα.⟨x|μ̃x.⟨f|x·α⟩⟩" `with` [("x", x), ("f", f)]
+app f x = "µα.⟨f|x·α⟩" `with` [("x", x), ("f", f)]
 
 app2 :: Term' -> Term' -> Term' -> Term'
 app2 f x y = app (app f x) y

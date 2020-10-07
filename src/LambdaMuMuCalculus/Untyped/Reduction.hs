@@ -11,7 +11,11 @@ import           LambdaMuMuCalculus.Untyped.Syntax
 cbv :: (Eq var, Eq covar, Enum var, Enum covar)
     => Command covar var -> Maybe (Command covar var)
 cbv = \case
-  Command (Lambda x t1) (App t2 e)  -> Just (Command t2 (MuVar x (Command t1 e)))
+  Command (Lambda x t1) (App t2 e)  ->
+    let (vars, _) = getFreeVarsInContext e
+        x' = refreshVar vars x
+        t1' = renameVar x x' t1
+     in cbv (Command t2 (MuVar x' (Command t1' e)))
   Command (Mu b c) e                -> Just (substituteInCommand [] [(b, e)] c)
   Command t (MuVar x c)             -> Just (substituteInCommand [(x, t)] [] c)
   _                                 -> Nothing
