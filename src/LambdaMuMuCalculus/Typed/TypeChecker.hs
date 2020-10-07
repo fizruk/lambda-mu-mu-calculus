@@ -1,6 +1,7 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE LambdaCase                 #-}
 {-# LANGUAGE OverloadedStrings          #-}
+{-# LANGUAGE RecordWildCards            #-}
 module LambdaMuMuCalculus.Typed.TypeChecker where
 
 import           Control.Arrow                     (second)
@@ -53,24 +54,30 @@ checkInfiniteType tt x (TypeFunction a b) = do
   return (TypeFunction a' b')
 
 unify :: Eq ty => AType ty -> AType ty -> TypeChecker ty covar var ()
-unify (TypeFunction a b) (TypeFunction c d) = do
-  unify a c
-  unify b d
-unify (TypeVariable x) (TypeVariable y)
-  | x == y = return ()
-unify (TypeVariable x) t = do
-  mty <- lookupTypeVar x
-  case mty of
-    Nothing -> do
-      t' <- checkInfiniteType t x t
-      modify (\ctx -> ctx {
-        freeVars = map (second (instantiateTypes [(x, t')])) (freeVars ctx),
-        freeCovars = map (second (instantiateTypes [(x, t')])) (freeCovars ctx),
-        knownTypes = (x, t') : map (second (instantiateTypes [(x, t')])) (knownTypes ctx)
-        } )
-    Just xty -> unify xty t
-unify t (TypeVariable x) = unify (TypeVariable x) t
--- unify t1 t2 = throwError (TypeErrorUnexpected t1 t2)
+unify t1 t2 = do
+  TypingContext{..} <- get
+  let t1' = instantiateTypes knownTypes t1
+      t2' = instantiateTypes knownTypes t2
+  unify' t1' t2'
+  where
+    unify' (TypeFunction a b) (TypeFunction c d) = do
+      unify' a c
+      unify' b d
+    unify' (TypeVariable x) (TypeVariable y)
+      | x == y = return ()
+    unify' (TypeVariable x) t = do
+      mty <- lookupTypeVar x
+      case mty of
+        Nothing -> do
+          t' <- checkInfiniteType t x t
+          modify (\ctx -> ctx {
+            freeVars = map (second (instantiateTypes [(x, t')])) (freeVars ctx),
+            freeCovars = map (second (instantiateTypes [(x, t')])) (freeCovars ctx),
+            knownTypes = (x, t') : map (second (instantiateTypes [(x, t')])) (knownTypes ctx)
+            } )
+        Just xty -> unify' xty t
+    unify' t (TypeVariable x) = unify' (TypeVariable x) t
+    -- unify' t1 t2 = throwError (TypeErrorUnexpected t1 t2)
 
 instance MonadFail (TypeChecker ty covar var) where
   fail = throwError . TypeErrorOther . Text.pack
@@ -207,10 +214,7 @@ unsafeRunTypeChecker m =
     Left err       -> error ("TypeError: " <> Text.unpack (ppTypeError err))
     Right (x, ctx) -> (ctx, x)
 
-unsafeTypecheck
-  :: (Eq var, Eq covar, Eq ty, Enum ty, Show ty)
-  => Untyped.Term covar var
-  -> TypedTerm ty covar var
+unsafeTypecheck :: Untyped.Term' -> TypedTerm'
 unsafeTypecheck = toTypedTerm . unsafeRunTypeChecker . typecheck
   where
     toTypedTerm (ctx, (t, tt)) = TypedTerm (freeVars ctx) (t', tt') (freeCovars ctx)
