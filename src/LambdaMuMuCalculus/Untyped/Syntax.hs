@@ -16,49 +16,76 @@ import           Data.String   (IsString)
 import           Data.Text     (Text)
 import qualified Data.Text     as Text
 
+-- | Standard type for covariables.
 type CoVar = Var
 
+-- | Standard type variables.
 newtype Var = Var { getVar :: Text }
   deriving (Eq, IsString)
 
 instance Show Var where show = Text.unpack . getVar
 
+-- | Enum instance allows to easily increment index for a variable:
+--
+-- >>> succ "x" :: Var
+-- x₁
 instance Enum Var where
   succ = incVarIndex
   toEnum = error "toEnum is not implemented for Var"
   fromEnum = error "toEnum is not implemented for Var"
 
+-- | Increment index for a variable.
+--
+-- >>> incVarIndex "x"
+-- x₁
 incVarIndex :: Var -> Var
 incVarIndex = coerce incIndexText
 
+-- | Standard term.
 type Term'    = Term    CoVar Var
+
+-- | Standard context.
 type Context' = Context CoVar Var
+
+-- | Standard command.
 type Command' = Command CoVar Var
 
 -- | An untyped \(\bar{\lambda}\mu\tilde{\mu}\)-term.
 data Term covar var
-  = Variable var                                          -- ^ \( x \)
-  | Lambda var (Term covar var)
-  | Mu covar (Command covar var)
+  = Variable var                    -- ^ \( x \)
+  | Lambda var (Term covar var)     -- ^ \( \lambda x. t \)
+  | Mu covar (Command covar var)    -- ^ \( \mu \alpha. c \)
   deriving (Eq, Functor, Foldable)
 
 -- | An untyped \(\bar{\lambda}\mu\tilde{\mu}\)-context.
 data Context covar var
-  = Covariable covar
-  | App (Term covar var) (Context covar var)
-  | MuVar var (Command covar var)
+  = Covariable covar                          -- ^ \( \alpha \)
+  | App (Term covar var) (Context covar var)  -- ^ \( t \cdot e \)
+  | MuVar var (Command covar var)             -- ^ \( \tilde{\mu} x. c \)
   deriving (Eq, Functor, Foldable)
 
 -- | An untyped \(\bar{\lambda}\mu\tilde{\mu}\)-command.
 data Command covar var =
-  Command (Term covar var) (Context covar var)
+  Command (Term covar var) (Context covar var)  -- ^ \( \langle t | e \rangle \)
   deriving (Eq, Functor, Foldable)
 
+-- | Alpha-equivalence of terms, contexts and commands.
 class AlphaEquiv a where
   (===) :: a -> a -> Bool
 
+-- |
+-- >>> "λx.λy.y" === ("λa.λb.b" :: Term')
+-- True
 instance AlphaEquiv Term'     where (===) = (==) `on` (alphaNormalize          ("x", "α"))
+
+-- |
+-- >>> "μ̃x.⟨s|x·α⟩" === ("μ̃y.⟨s|y·α⟩" :: Context')
+-- True
 instance AlphaEquiv Context'  where (===) = (==) `on` (alphaNormalizeInContext ("x", "α"))
+
+-- |
+-- >>> "⟨µα.⟨s|z·δ⟩|μ̃x.⟨s|x·δ⟩⟩" === ("⟨µβ.⟨s|z·δ⟩|μ̃y.⟨s|y·δ⟩⟩" :: Untyped.Command')
+-- True
 instance AlphaEquiv Command'  where (===) = (==) `on` (alphaNormalizeInCommand ("x", "α"))
 
 getBoundedVars :: Term covar var -> [var]
