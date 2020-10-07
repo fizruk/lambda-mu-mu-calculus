@@ -28,6 +28,7 @@ dependencies:
 - text
 - attoparsec
 - mtl
+- ansi-terminal
 
 library:
   source-dirs: src

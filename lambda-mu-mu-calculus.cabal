@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: a8e2745774834563ef80e5fa514e56de8d015eefe63b5299d4f54bc7a969c2f5
+-- hash: e22380218f7f64c74e041372bb051f6e05114be2a01b5832b090fb8ed080a76e
 
 name:           lambda-mu-mu-calculus
 version:        0.1.0.0
@@ -28,8 +28,10 @@ source-repository head
 library
   exposed-modules:
       LambdaMuMuCalculus.Typed
+      LambdaMuMuCalculus.Typed.Colored
       LambdaMuMuCalculus.Typed.Pretty
       LambdaMuMuCalculus.Typed.Syntax
+      LambdaMuMuCalculus.Typed.TypeChecker
       LambdaMuMuCalculus.Untyped
       LambdaMuMuCalculus.Untyped.Church
       LambdaMuMuCalculus.Untyped.Parser
@@ -42,7 +44,8 @@ library
       src
   ghc-options: -Wall -fno-warn-type-defaults
   build-depends:
-      attoparsec
+      ansi-terminal
+    , attoparsec
     , base >=4.7 && <5
     , mtl
     , text
@@ -56,7 +59,8 @@ executable lambda-mu-mu-calculus
       app
   ghc-options: -Wall -fno-warn-type-defaults -threaded -rtsopts -with-rtsopts=-N
   build-depends:
-      attoparsec
+      ansi-terminal
+    , attoparsec
     , base >=4.7 && <5
     , lambda-mu-mu-calculus
     , mtl
@@ -72,7 +76,8 @@ test-suite spec
       test
   ghc-options: -Wall -fno-warn-type-defaults -threaded -rtsopts -with-rtsopts=-N
   build-depends:
-      attoparsec
+      ansi-terminal
+    , attoparsec
     , base >=4.7 && <5
     , lambda-mu-mu-calculus
     , mtl

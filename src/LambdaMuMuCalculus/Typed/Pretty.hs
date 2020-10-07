@@ -39,3 +39,10 @@ ppContext (Covariable alpha) = getVar alpha
 ppContext (App t e)          = ppTerm t <> "·" <> ppContext e
 ppContext (MuVar (x, xty) c) = "μ̃(" <> getVar x <> " : " <> ppType xty <> ")." <> ppCommand c
 
+instance Show ty => Show (AType ty)     where show = Text.unpack . ppType
+
+ppType :: Show ty => AType ty -> Text
+ppType (TypeVariable t)                     = Text.pack (show t)
+ppType (TypeFunction a@(TypeVariable _) b)  = ppType a <> " → " <> ppType b
+ppType (TypeFunction a b)                   = "(" <> ppType a <> ") → " <> ppType b
+
