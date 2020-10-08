@@ -16,7 +16,7 @@ instance Num Term' where
   (+) = app2 add
   (*) = app2 mul
   abs = id
-  signum = app "λn.λs.λz.µα.⟨n|λz.λs.λz.µα.⟨z|μ̃x.⟨s|x·α⟩⟩·z·α⟩"
+  signum = app1 "λn.λs.λz.µα.⟨n|λz.λs.λz.µα.⟨z|μ̃x.⟨s|x·α⟩⟩·z·α⟩"
   negate = error "negate is not implemented for Term' Church numerals"
   (-)    = error "(-) is not implemented for Term' Church numerals"
   fromInteger = nat . fromInteger
@@ -28,13 +28,13 @@ instance Num Term' where
 -- >>> apps ("f" :| ["x", "y", "z"])
 -- µα.⟨z|μ̃x₁.⟨µα.⟨y|μ̃x₁.⟨µα.⟨x|μ̃x₁.⟨f|x₁·α⟩⟩|x₁·α⟩⟩|x₁·α⟩⟩
 apps :: NonEmpty Term' -> Term'
-apps = foldl1 app
+apps = foldl1 app1
 
-app :: Term' -> Term' -> Term'
-app f x = "µα.⟨f|x·α⟩" `with` [("x", x), ("f", f)]
+app1 :: Term' -> Term' -> Term'
+app1 f x = "µα.⟨f|x·α⟩" `with` [("x", x), ("f", f)]
 
 app2 :: Term' -> Term' -> Term' -> Term'
-app2 f x y = app (app f x) y
+app2 f x y = app1 (app1 f x) y
 
 -- * Booleans
 
@@ -55,7 +55,7 @@ nat m = substituteWithCapture [("t", nat' m)] [] "λs.λz.t"
     nat' :: Natural -> Term'
     nat' n
       | n == 0    = "z"
-      | otherwise = app "s" (nat' (n-1))
+      | otherwise = app1 "s" (nat' (n-1))
 
 add :: Term'
 add = "λn.λm.λs.λz.μα.⟨n|s·μβ.⟨m|s·z·β⟩·α⟩"
